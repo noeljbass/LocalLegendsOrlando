@@ -1,6 +1,7 @@
 # Use the root controller when visitors request the domain without a filename.
 DirectoryIndex index.php
 Options -Indexes
+ErrorDocument 404 /404.php
 RewriteEngine On
 
 # Public URL normalization: remove direct index.php/index.html requests.
