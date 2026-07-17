@@ -70,6 +70,13 @@ function send_site_mail(string $to, string $subject, string $message, ?string $r
     return mail($to, str_replace(["\r", "\n"], '', $subject), $message, implode("\r\n", $headers));
 }
 
+function prevent_form_caching(): void {
+    if (headers_sent()) return;
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Vary: Cookie');
+}
+
 function enforce_form_rate_limit(string $key, int $seconds = 45): void {
     start_session();
     $last = (int) ($_SESSION['form_rate_limits'][$key] ?? 0);
