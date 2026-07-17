@@ -130,3 +130,11 @@ CREATE TABLE interview_media (
   CONSTRAINT fk_interview_media_interview FOREIGN KEY (interview_id) REFERENCES interview_submissions(id) ON DELETE CASCADE,
   CONSTRAINT fk_interview_media_media FOREIGN KEY (media_id) REFERENCES media_uploads(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Newsletter signups are intentionally separate from editorial submissions and contacts.
+CREATE TABLE newsletter_subscribers (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX newsletter_subscriber_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
