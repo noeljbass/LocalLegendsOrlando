@@ -1,12 +1,27 @@
 <?php
-/** Configure these values in the IONOS hosting control panel. */
+/** Configure values through the IONOS control panel or a root-level .env file. */
+function load_environment_file(string $file): void {
+    if (!is_readable($file)) return;
+    $values = parse_ini_file($file, false, INI_SCANNER_RAW);
+    if ($values === false) return;
+    foreach ($values as $key => $value) {
+        if (getenv($key) === false && is_string($value)) putenv($key . '=' . $value);
+    }
+}
+load_environment_file(__DIR__ . '/.env');
+
+function env(string $key, string $default = ''): string {
+    $value = getenv($key);
+    return $value === false ? $default : $value;
+}
+
 define('SITE_NAME', 'Local Legends Orlando');
-define('SITE_URL', rtrim(getenv('SITE_URL') ?: 'https://locallegendsorlando.com', '/'));
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'local_legends_orlando');
-define('DB_USER', getenv('DB_USER') ?: '');
-define('DB_PASS', getenv('DB_PASS') ?: '');
-define('ADMIN_EMAIL', getenv('ADMIN_EMAIL') ?: 'hello@locallegendsorlando.com');
+define('SITE_URL', rtrim(env('SITE_URL', 'https://locallegendsorlando.com'), '/'));
+define('DB_HOST', env('DB_HOST', 'localhost'));
+define('DB_NAME', env('DB_NAME', 'local_legends_orlando'));
+define('DB_USER', env('DB_USER'));
+define('DB_PASS', env('DB_PASS'));
+define('ADMIN_EMAIL', env('ADMIN_EMAIL', 'hello@locallegendsorlando.com'));
 
 function db(): PDO {
     static $pdo;

@@ -18,8 +18,9 @@ A warm, community-first digital publication for the people, businesses, creators
 ## Production setup
 
 1. Create a MySQL database and import [`database/schema.sql`](database/schema.sql).
-2. Configure the hosting environment variables: `SITE_URL`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, and `ADMIN_EMAIL`.
+2. Configure `SITE_URL`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, and `ADMIN_EMAIL` through IONOS environment settings or in a root-level `.env` file copied from `.env.example`.
    - `SITE_URL` must be the full public URL without a trailing slash, for example `https://locallegendsorlando.com`.
+   - The application loads `.env` only when an IONOS environment variable for the same value is not already set.
 3. Create the first admin account from the command line:
 
    ```bash

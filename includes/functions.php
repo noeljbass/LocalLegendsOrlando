@@ -27,7 +27,7 @@ function public_articles(int $limit = 12, ?string $category = null, ?string $tag
     try {
         $articles = get_articles($limit, $category, $tag);
         return $articles ?: (!$category && !$tag ? demo_articles() : []);
-    } catch (PDOException $exception) {
+    } catch (Throwable $exception) {
         return !$category && !$tag ? demo_articles() : [];
     }
 }
@@ -37,7 +37,7 @@ function published_article_by_slug(string $slug): ?array {
         $stmt = db()->prepare("SELECT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id WHERE a.status='published' AND a.slug=? LIMIT 1");
         $stmt->execute([$slug]);
         return $stmt->fetch() ?: null;
-    } catch (PDOException $exception) {
+    } catch (Throwable $exception) {
         return null;
     }
 }
@@ -57,7 +57,7 @@ function search_articles(string $query, int $limit = 30): array {
         WHERE a.status='published' AND (a.title LIKE ? OR a.content LIKE ? OR c.name LIKE ? OR t.name LIKE ?)
         ORDER BY a.is_featured DESC, a.published_at DESC LIMIT " . (int) $limit;
     try { $statement = db()->prepare($sql); $statement->execute([$pattern, $pattern, $pattern, $pattern]); return $statement->fetchAll(); }
-    catch (PDOException $exception) { return []; }
+    catch (Throwable $exception) { return []; }
 }
 
 function send_site_mail(string $to, string $subject, string $message, ?string $replyTo = null): bool {
@@ -88,11 +88,11 @@ function security_headers(): void {
 function public_categories(): array {
     try {
         return db()->query("SELECT c.*, COUNT(DISTINCT a.id) AS article_count FROM categories c LEFT JOIN article_categories ac ON ac.category_id=c.id LEFT JOIN articles a ON a.id=ac.article_id AND a.status='published' GROUP BY c.id ORDER BY c.name")->fetchAll();
-    } catch (PDOException $exception) { return []; }
+    } catch (Throwable $exception) { return []; }
 }
 
 function public_tags(): array {
     try {
         return db()->query("SELECT t.*, COUNT(DISTINCT a.id) AS article_count FROM tags t LEFT JOIN article_tags at ON at.tag_id=t.id LEFT JOIN articles a ON a.id=at.article_id AND a.status='published' GROUP BY t.id ORDER BY t.name")->fetchAll();
-    } catch (PDOException $exception) { return []; }
+    } catch (Throwable $exception) { return []; }
 }
