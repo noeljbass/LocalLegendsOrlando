@@ -1,0 +1,9 @@
+# Uploaded editorial media never belongs in source control.
+uploads/*
+!uploads/.htaccess
+
+# Local environment files and editor noise.
+.env
+.env.*
+!.env.example
+.DS_Store

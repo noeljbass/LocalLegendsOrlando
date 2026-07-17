@@ -1,0 +1,17 @@
+<?php
+require '../includes/functions.php';
+$slug = basename(rtrim($_SERVER['REQUEST_URI'], '/'));
+$articles = public_articles(3);
+$article = published_article_by_slug($slug) ?: current(array_filter($articles, fn($item) => $item['slug'] === $slug));
+if (!$article) { http_response_code(404); exit('Story not found.'); }
+$isDatabaseArticle = isset($article['id']);
+$pageTitle = (($article['seo_title'] ?? '') ?: $article['title']) . ' | Local Legends Orlando';
+$metaDescription = ($article['meta_description'] ?? '') ?: $article['excerpt'];
+$shareImage = media_url($article['image'] ?? null, 'assets/images/market.svg');
+require '../includes/header.php';
+$categories = $isDatabaseArticle ? article_categories((int) $article['id']) : [];
+$tags = $isDatabaseArticle ? article_tags((int) $article['id']) : [];
+$image = media_url($article['image'] ?? null, 'assets/images/market.svg');
+?>
+<article class="article" itemscope itemtype="https://schema.org/Article"><header><p class="eyebrow"><?= $categories ? e($categories[0]['name']) : 'Community spotlight' ?></p><h1 itemprop="headline"><?= e($article['title']) ?></h1><p class="article-dek" itemprop="description"><?= e($article['excerpt']) ?></p><div class="byline">By <span itemprop="author"><?= e($article['author'] ?: 'Local Legends Team') ?></span> <span>•</span> <time itemprop="datePublished" datetime="<?= e($article['published_at']) ?>"><?= date('F j, Y', strtotime($article['published_at'])) ?></time></div></header><img class="article-image" src="<?= e($image) ?>" alt="" loading="eager" itemprop="image"><div class="article-content" itemprop="articleBody"><?php if ($isDatabaseArticle): ?><?= $article['content'] ?><?php else: ?><p class="intro">The best stories in our city often begin with someone who sees possibility where others see an ordinary day.</p><p>Across Central Florida, local business owners are creating places where people can belong. Their work brings care, imagination, and a welcome sense of connection to our neighborhoods.</p><h2>Built with the community in mind</h2><p>What makes a local legend is more than a great idea. It is the patience to show up, the courage to keep learning, and the generosity to make room for others. That spirit is what we hope to celebrate in every story we tell.</p><blockquote>“The places we remember are the ones that make us feel welcome.”</blockquote><p>As Orlando continues to grow, these human-scale stories keep us rooted. We’re grateful to share them—and to invite you to discover your next favorite local place.</p><?php endif; ?></div><?php if ($tags): ?><p class="article-tags"><?php foreach ($tags as $tag): ?><a href="<?= url('tag/' . $tag['slug'] . '/') ?>">#<?= e($tag['name']) ?></a><?php endforeach; ?></p><?php endif; ?></article><script type="application/ld+json"><?= json_encode(['@context'=>'https://schema.org','@type'=>'Article','headline'=>$article['title'],'description'=>$article['excerpt'],'datePublished'=>$article['published_at'],'mainEntityOfPage'=>url('story/'.$article['slug'].'/'),'image'=>$image,'author'=>['@type'=>'Person','name'=>$article['author'] ?: 'Local Legends Team']], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script><section class="section related"><p class="eyebrow">Keep exploring</p><h2>More stories to love</h2><a class="button" href="<?= url('stories/') ?>">Browse all stories <span>→</span></a></section>
+<?php require '../includes/footer.php'; ?>

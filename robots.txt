@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /feature-interview/
+Sitemap: https://locallegendsorlando.com/sitemap.php
+# The interview is private and deliberately omitted from sitemap.php.
