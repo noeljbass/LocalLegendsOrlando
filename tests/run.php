@@ -1,6 +1,8 @@
 <?php
 /** Lightweight, dependency-free checks for helpers that do not need MySQL. */
+putenv('CSRF_SECRET=tests-only-csrf-secret');
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 $failures = 0;
 function expect_same(mixed $expected, mixed $actual, string $name): void {
@@ -16,6 +18,9 @@ expect_same(SITE_URL . '/assets/images/coffee.svg', media_url('assets/images/cof
 expect_same(SITE_URL . '/uploads/local-legend.webp', media_url('local-legend.webp'), 'uploaded media URL');
 expect_same([], search_articles(''), 'blank search short-circuits without database access');
 expect_same([], search_articles('coffee'), 'database failures return empty search results');
+$csrfToken = csrf_token();
+expect_same(true, valid_signed_csrf_token($csrfToken), 'signed CSRF token validates without a persisted session');
+expect_same(false, valid_signed_csrf_token($csrfToken . 'x'), 'tampered signed CSRF token is rejected');
 
 if ($failures) exit(1);
 echo "All helper checks passed.\n";

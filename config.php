@@ -22,6 +22,9 @@ define('DB_NAME', env('DB_NAME', 'local_legends_orlando'));
 define('DB_USER', env('DB_USER'));
 define('DB_PASS', env('DB_PASS'));
 define('ADMIN_EMAIL', env('ADMIN_EMAIL', 'hello@locallegendsorlando.com'));
+// Set this to a long random value in production. DB_PASS is retained as a
+// backwards-compatible fallback for existing deployments.
+define('CSRF_SECRET', env('CSRF_SECRET', DB_PASS));
 
 function db(): PDO {
     static $pdo;
