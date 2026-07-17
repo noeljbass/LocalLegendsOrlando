@@ -22,4 +22,4 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(story|category|tag)/[^/]+/?$ $1/index.php [L,QSA]
 
 # The domain root is served by the homepage controller.
-RewriteRule ^$ index.php [L]
+RewriteRule ^$ /index.php [L]
