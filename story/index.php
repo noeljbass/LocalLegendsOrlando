@@ -7,7 +7,6 @@ if (!$article) { http_response_code(404); exit('Story not found.'); }
 $isDatabaseArticle = isset($article['id']);
 $pageTitle = (($article['seo_title'] ?? '') ?: $article['title']) . ' | Local Legends Orlando';
 $metaDescription = ($article['meta_description'] ?? '') ?: $article['excerpt'];
-$shareImage = media_url($article['image'] ?? null, 'assets/images/market.svg');
 require '../includes/header.php';
 $categories = $isDatabaseArticle ? article_categories((int) $article['id']) : [];
 $tags = $isDatabaseArticle ? article_tags((int) $article['id']) : [];
