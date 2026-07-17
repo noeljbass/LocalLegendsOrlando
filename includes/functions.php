@@ -81,6 +81,10 @@ function enforce_form_rate_limit(string $key, int $seconds = 45): void {
     start_session();
     $last = (int) ($_SESSION['form_rate_limits'][$key] ?? 0);
     if ($last && time() - $last < $seconds) throw new RuntimeException('Thanks—we received your message. Please wait a moment before submitting again.');
+}
+
+function record_form_submission(string $key): void {
+    start_session();
     $_SESSION['form_rate_limits'][$key] = time();
 }
 
