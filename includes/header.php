@@ -7,7 +7,7 @@ $metaKeywords = $metaKeywords ?? 'Orlando local businesses, Central Florida entr
 $canonicalPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
 $canonicalUrl = url($canonicalPath);
 $shareImage = url('assets/images/socialbanner.webp');
-$headerLogo = url('assets/images/LocalLegendsOrlandoLogoLong.webp');
+$headerLogo = url('assets/images/local-legends-long-logo.webp');
 $robots = $robots ?? 'index,follow,max-image-preview:large';
 ?>
 <!doctype html>
