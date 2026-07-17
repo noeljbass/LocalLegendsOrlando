@@ -7,6 +7,7 @@ $metaKeywords = $metaKeywords ?? 'Orlando local businesses, Central Florida entr
 $canonicalPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
 $canonicalUrl = url($canonicalPath);
 $shareImage = url('assets/images/socialbanner.webp');
+$headerLogo = url('assets/images/LocalLegendsOrlandoLogoLong.webp');
 $robots = $robots ?? 'index,follow,max-image-preview:large';
 ?>
 <!doctype html>
@@ -43,5 +44,5 @@ $robots = $robots ?? 'index,follow,max-image-preview:large';
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><a class="brand" href="<?= url() ?>" aria-label="Local Legends Orlando home"><img src="<?= url('assets/images/LocalLegendsOrlandoLogoLong.webp') ?>" alt="Local Legends Orlando"></a><button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button><nav id="site-nav" class="site-nav" aria-label="Primary"><a href="<?= url('stories/') ?>">Stories</a><a href="<?= url('search/') ?>">Search</a><a href="<?= url('categories/') ?>">Categories</a><a href="<?= url('about/') ?>">About</a><a href="<?= url('contact/') ?>">Contact</a><a class="button button-small" href="<?= url('get-featured/') ?>">Get Featured</a></nav></header>
+<header class="site-header"><a class="brand" href="<?= url() ?>" aria-label="Local Legends Orlando home"><img src="<?= e($headerLogo) ?>" alt="Local Legends Orlando"></a><button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button><nav id="site-nav" class="site-nav" aria-label="Primary"><a href="<?= url('stories/') ?>">Stories</a><a href="<?= url('search/') ?>">Search</a><a href="<?= url('categories/') ?>">Categories</a><a href="<?= url('about/') ?>">About</a><a href="<?= url('contact/') ?>">Contact</a><a class="button button-small" href="<?= url('get-featured/') ?>">Get Featured</a></nav></header>
 <main id="main">
