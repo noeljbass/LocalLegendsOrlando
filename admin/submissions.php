@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $submissions = db()->query('SELECT * FROM submissions ORDER BY created_at DESC')->fetchAll();
+$queuedSubmissions = queued_form_fallbacks('feature-application');
 require __DIR__ . '/partials/header.php';
 ?>
 <div class="admin-heading"><div><p class="eyebrow">Community</p><h1>Feature submissions</h1></div></div>
@@ -73,6 +74,9 @@ require __DIR__ . '/partials/header.php';
     <p class="form-error">That submission action is not available.</p>
 <?php elseif (($_GET['notice'] ?? '') === 'deleted'): ?>
     <p class="notice">Submission deleted.</p>
+<?php endif; ?>
+<?php if ($queuedSubmissions): ?>
+<section class="admin-panel submission-list"><h2>Recovered submissions</h2><p>These were safely queued while the database was unavailable. Add them to the database when service is restored, then remove the recovery file from the server.</p><?php foreach ($queuedSubmissions as $item): $values = $item['values']; ?><article><div><h2><?= e($values['business_name'] ?? 'Unknown business') ?></h2><p><strong><?= e($values['owner_name'] ?? '') ?></strong> · <a href="mailto:<?= e($values['email'] ?? '') ?>"><?= e($values['email'] ?? '') ?></a></p><p><?= nl2br(e($values['message'] ?? '')) ?></p><p><small>Recovery reference <?= e($item['reference'] ?? '') ?> · <?= e($item['created_at'] ?? '') ?></small></p></div></article><?php endforeach; ?></section>
 <?php endif; ?>
 <section class="admin-panel submission-list">
     <?php foreach ($submissions as $item): ?>

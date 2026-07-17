@@ -1,3 +1,7 @@
 Options -ExecCGI
 RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8
 RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8
+<Files "form-fallbacks.ndjson">
+  Require all denied
+  Deny from all
+</Files>

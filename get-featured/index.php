@@ -37,6 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } catch (Throwable $exception) {
         $_SESSION['feature_application_draft'] = $values;
+        if ($exception instanceof PDOException) {
+            error_log('Feature application database failure: ' . $exception->getMessage());
+            $submissionReference = queue_form_fallback('feature-application', $values);
+            if ($submissionReference !== null) {
+                unset($_SESSION['feature_application_draft']);
+                $_SESSION['feature_application_success'] = $submissionReference;
+                header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'), true, 303);
+                exit;
+            }
+        }
         $error = $exception instanceof PDOException ? 'We could not save your story right now. Please try again soon.' : $exception->getMessage();
     }
 }

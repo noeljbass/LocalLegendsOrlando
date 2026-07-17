@@ -53,3 +53,7 @@ php tests/run.php
 - Admin and public state-changing forms use CSRF tokens.
 - Uploads are limited to accepted image MIME types and blocked from PHP execution by `uploads/.htaccess`.
 - Use HTTPS in production; secure cookies are automatically enabled on HTTPS requests.
+
+## Submission recovery
+
+If the database is temporarily unavailable, feature applications and written interview answers are queued in `uploads/form-fallbacks.ndjson` instead of being discarded. The file is denied from web access by `uploads/.htaccess`; recovered feature applications are displayed at the top of **Admin → Submissions** once database service is restored. Investigate the matching PHP error-log entry for the database connection or schema issue, add recovered records to the database, and then remove the recovery file.

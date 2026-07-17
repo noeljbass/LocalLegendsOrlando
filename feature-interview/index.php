@@ -66,6 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($databaseTransaction && db()->inTransaction()) db()->rollBack();
         foreach ($uploadedFiles as $file) if (is_file($file)) unlink($file);
         $_SESSION['feature_interview_draft'] = $values;
+        if ($exception instanceof PDOException) {
+            error_log('Feature interview database failure: ' . $exception->getMessage());
+            if (queue_form_fallback('feature-interview', $values) !== null) {
+                unset($_SESSION['feature_interview_draft']);
+                $_SESSION['feature_interview_success'] = true;
+                header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'), true, 303);
+                exit;
+            }
+        }
         $error = $exception instanceof PDOException ? 'We could not save your interview right now. Your answers are still saved on this device—please try again shortly.' : ($exception->getMessage() ?: 'We could not submit your interview. Your answers are still saved on this device—please try again.');
     }
 }
