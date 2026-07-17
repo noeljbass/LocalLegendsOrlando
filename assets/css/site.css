@@ -11,3 +11,17 @@
 .taxonomy-create{display:grid;gap:.75rem;margin-bottom:1.2rem}.taxonomy-create label,.taxonomy-edit label{display:block;font-weight:700;font-size:.8rem}.taxonomy-create input,.taxonomy-create textarea,.taxonomy-edit input,.taxonomy-edit textarea{width:100%;display:block;margin-top:.3rem;padding:.6rem;border:1px solid #cfc5b4;background:#fff;font:inherit}.taxonomy-list details{border-bottom:1px solid var(--line);padding:.75rem 0}.taxonomy-list summary{cursor:pointer}.taxonomy-list summary small{display:block;color:#63726c}.taxonomy-edit{display:grid;gap:.65rem;padding-top:1rem}.taxonomy-edit .delete-button{justify-self:start;margin-top:0}
 .honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
 .tag-directory{padding-top:0}.tag-cloud{display:flex;flex-wrap:wrap;gap:.65rem}.tag-cloud a{background:var(--paper);border:1px solid var(--line);border-radius:100px;padding:.5rem .8rem;font-size:.9rem;font-weight:700}.tag-cloud a:hover{border-color:var(--orange);color:var(--orange)}.tag-cloud small{color:var(--orange);margin-left:.2rem}
+
+/* Full-bleed home page feature image */
+.hero--image{position:relative;isolation:isolate;min-height:clamp(500px,48vw,720px);display:flex;align-items:center;justify-content:center;padding:5rem max(8vw,32px);background:linear-gradient(90deg,#07192ccc 0%,#07192c82 46%,#07192cb3 100%),url('../images/local-legends-orlando-hero.webp') center center/cover no-repeat;color:#fff;text-align:center}
+.hero--image::before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(0deg,#07192c8c 0%,transparent 55%)}
+.hero--image .hero-copy{max-width:980px}
+.hero--image h1{max-width:930px;margin:.45rem auto 1rem;color:#fff;font-size:clamp(2.7rem,4.2vw,4.65rem);line-height:1.02;text-shadow:0 2px 18px #0008}
+.hero--image .eyebrow{color:#f3ce79;text-shadow:0 1px 5px #0008}
+.hero--image .lede{max-width:690px;margin-right:auto;margin-left:auto;color:#fff;font-size:clamp(1rem,1.45vw,1.25rem);line-height:1.45;text-shadow:0 1px 8px #0008}
+.hero--image .hero-actions{justify-content:center;margin-top:1.8rem}
+.hero--image .button{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.hero--image .button:hover{background:#e0b95d;border-color:#e0b95d}
+.hero--image .text-link{min-width:190px;justify-content:center;padding:.85rem 1.25rem;border:1px solid #fff;color:#fff}
+.hero--image .text-link:hover{border-color:var(--gold);color:var(--gold)}
+@media(max-width:760px){.hero--image{min-height:560px;padding:4rem 6vw;background-position:58% center}.hero--image h1{font-size:clamp(2.65rem,10vw,3.6rem)}.hero--image .hero-actions{flex-direction:column;gap:1rem}.hero--image .button,.hero--image .text-link{width:min(100%,280px);justify-content:center}}
