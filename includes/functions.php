@@ -81,7 +81,35 @@ function enforce_form_rate_limit(string $key, int $seconds = 45): void {
     start_session();
     $last = (int) ($_SESSION['form_rate_limits'][$key] ?? 0);
     if ($last && time() - $last < $seconds) throw new RuntimeException('Thanks—we received your message. Please wait a moment before submitting again.');
+}
+
+function record_form_submission(string $key): void {
+    start_session();
     $_SESSION['form_rate_limits'][$key] = time();
+}
+
+function queue_form_fallback(string $type, array $values): ?string {
+    $reference = strtoupper($type) . '-' . bin2hex(random_bytes(5));
+    $record = json_encode([
+        'reference' => $reference,
+        'type' => $type,
+        'created_at' => gmdate('c'),
+        'values' => $values,
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if ($record === false) return null;
+    $path = __DIR__ . '/../uploads/form-fallbacks.ndjson';
+    return file_put_contents($path, $record . PHP_EOL, FILE_APPEND | LOCK_EX) === false ? null : $reference;
+}
+
+function queued_form_fallbacks(string $type): array {
+    $path = __DIR__ . '/../uploads/form-fallbacks.ndjson';
+    if (!is_readable($path)) return [];
+    $items = [];
+    foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+        $item = json_decode($line, true);
+        if (is_array($item) && ($item['type'] ?? '') === $type) $items[] = $item;
+    }
+    return array_reverse($items);
 }
 
 function security_headers(): void {

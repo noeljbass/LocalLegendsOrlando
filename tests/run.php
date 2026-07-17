@@ -3,6 +3,7 @@
 putenv('CSRF_SECRET=tests-only-csrf-secret');
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
+start_session();
 
 $failures = 0;
 function expect_same(mixed $expected, mixed $actual, string $name): void {
@@ -21,6 +22,16 @@ expect_same([], search_articles('coffee'), 'database failures return empty searc
 $csrfToken = csrf_token();
 expect_same(true, valid_signed_csrf_token($csrfToken), 'signed CSRF token validates without a persisted session');
 expect_same(false, valid_signed_csrf_token($csrfToken . 'x'), 'tampered signed CSRF token is rejected');
+
+unset($_SESSION['form_rate_limits']['test_form']);
+enforce_form_rate_limit('test_form');
+record_form_submission('test_form');
+try {
+    enforce_form_rate_limit('test_form');
+    expect_same(true, false, 'recorded form submission is rate limited');
+} catch (RuntimeException) {
+    expect_same(true, true, 'recorded form submission is rate limited');
+}
 
 if ($failures) exit(1);
 echo "All helper checks passed.\n";
