@@ -18,6 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'delete') {
+        db()->prepare('DELETE FROM submissions WHERE id=?')->execute([$id]);
+        header('Location: ' . url('admin/submissions.php?notice=deleted'));
+        exit;
+    }
+
     if ($action === 'invite') {
         $statement = db()->prepare('SELECT business_name, owner_name, email FROM submissions WHERE id=?');
         $statement->execute([$id]);
@@ -65,6 +71,8 @@ require __DIR__ . '/partials/header.php';
     <p class="form-error">We could not send the interview invitation. Please try again.</p>
 <?php elseif (($_GET['notice'] ?? '') === 'invalid-action'): ?>
     <p class="form-error">That submission action is not available.</p>
+<?php elseif (($_GET['notice'] ?? '') === 'deleted'): ?>
+    <p class="notice">Submission deleted.</p>
 <?php endif; ?>
 <section class="admin-panel submission-list">
     <?php foreach ($submissions as $item): ?>
@@ -82,6 +90,7 @@ require __DIR__ . '/partials/header.php';
                 <label>Status<select name="status"><?php foreach (['new', 'reviewing', 'approved', 'declined'] as $status): ?><option value="<?= $status ?>" <?= $status === $item['status'] ? 'selected' : '' ?>><?= ucfirst($status) ?></option><?php endforeach; ?></select></label>
                 <button name="action" value="status">Update</button>
                 <button class="button" name="action" value="invite">Send interview invitation</button>
+                <button class="delete-button" name="action" value="delete" onclick="return confirm('Delete this submission? This cannot be undone.')">Delete submission</button>
             </form>
         </article>
     <?php endforeach; ?>
