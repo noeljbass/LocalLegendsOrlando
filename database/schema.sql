@@ -68,6 +68,7 @@ CREATE TABLE submissions (
   social_links TEXT NULL,
   message TEXT NULL,
   status ENUM('new','reviewing','approved','declined') NOT NULL DEFAULT 'new',
+  invited_at TIMESTAMP NULL DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX submission_status (status)
