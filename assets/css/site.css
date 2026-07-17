@@ -27,3 +27,5 @@
 @media(max-width:760px){.hero--image{min-height:560px;padding:4rem 6vw;background-position:58% center}.hero--image h1{font-size:clamp(2.65rem,10vw,3.6rem)}.hero--image .hero-actions{flex-direction:column;gap:1rem}.hero--image .button,.hero--image .text-link{width:min(100%,280px);justify-content:center}}
 
 .brand{display:inline-flex;align-items:center}.brand img{display:block;width:auto;object-fit:contain}.site-header .brand img{height:150px;max-height:150px}.site-footer .brand img{height:150px;max-height:150px}
+/* Footer partner credit */
+.footer-credit{grid-column:1/-1;justify-self:end;margin:0;color:#d9e0eb;font-size:.76rem;letter-spacing:.04em}.footer-credit-name{color:var(--gold);font-weight:700;letter-spacing:.06em}@media(max-width:760px){.footer-credit{justify-self:start;margin-top:-1rem}}
