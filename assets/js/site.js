@@ -2,6 +2,18 @@ const toggle = document.querySelector('.nav-toggle');
 const nav = document.querySelector('.site-nav');
 if (toggle && nav) toggle.addEventListener('click', () => { const open = nav.classList.toggle('open'); toggle.setAttribute('aria-expanded', String(open)); });
 
+const submissionForm = document.querySelector('[data-submission-form]');
+if (submissionForm) {
+  submissionForm.addEventListener('submit', () => {
+    const button = submissionForm.querySelector('button[type="submit"], button:not([type])');
+    if (!button || !submissionForm.checkValidity()) return;
+    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
+    button.dataset.originalText = button.textContent;
+    button.textContent = 'Submitting…';
+  });
+}
+
 const interviewForm = document.querySelector('[data-interview-form]');
 if (interviewForm) {
   const steps = [...interviewForm.querySelectorAll('[data-step]')];
