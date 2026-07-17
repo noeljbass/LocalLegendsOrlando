@@ -18,6 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'delete') {
+        db()->prepare('DELETE FROM submissions WHERE id=?')->execute([$id]);
+        header('Location: ' . url('admin/submissions.php?notice=deleted'));
+        exit;
+    }
+
     if ($action === 'invite') {
         $statement = db()->prepare('SELECT business_name, owner_name, email FROM submissions WHERE id=?');
         $statement->execute([$id]);
@@ -66,6 +72,8 @@ require __DIR__ . '/partials/header.php';
     <p class="form-error">We could not send the interview invitation. Please try again.</p>
 <?php elseif (($_GET['notice'] ?? '') === 'invalid-action'): ?>
     <p class="form-error">That submission action is not available.</p>
+<?php elseif (($_GET['notice'] ?? '') === 'deleted'): ?>
+    <p class="notice">Submission deleted.</p>
 <?php endif; ?>
 <?php if ($queuedSubmissions): ?>
 <section class="admin-panel submission-list"><h2>Recovered submissions</h2><p>These were safely queued while the database was unavailable. Add them to the database when service is restored, then remove the recovery file from the server.</p><?php foreach ($queuedSubmissions as $item): $values = $item['values']; ?><article><div><h2><?= e($values['business_name'] ?? 'Unknown business') ?></h2><p><strong><?= e($values['owner_name'] ?? '') ?></strong> · <a href="mailto:<?= e($values['email'] ?? '') ?>"><?= e($values['email'] ?? '') ?></a></p><p><?= nl2br(e($values['message'] ?? '')) ?></p><p><small>Recovery reference <?= e($item['reference'] ?? '') ?> · <?= e($item['created_at'] ?? '') ?></small></p></div></article><?php endforeach; ?></section>
@@ -86,6 +94,7 @@ require __DIR__ . '/partials/header.php';
                 <label>Status<select name="status"><?php foreach (['new', 'reviewing', 'approved', 'declined'] as $status): ?><option value="<?= $status ?>" <?= $status === $item['status'] ? 'selected' : '' ?>><?= ucfirst($status) ?></option><?php endforeach; ?></select></label>
                 <button name="action" value="status">Update</button>
                 <button class="button" name="action" value="invite">Send interview invitation</button>
+                <button class="delete-button" name="action" value="delete" onclick="return confirm('Delete this submission? This cannot be undone.')">Delete submission</button>
             </form>
         </article>
     <?php endforeach; ?>
