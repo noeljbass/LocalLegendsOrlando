@@ -13,7 +13,7 @@ $robots = $robots ?? 'index,follow,max-image-preview:large';
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#293d38">
+<meta name="theme-color" content="#0B2348">
 <title><?= e($pageTitle) ?></title>
 <meta name="description" content="<?= e($metaDescription) ?>">
 <meta name="robots" content="<?= e($robots) ?>">
@@ -33,5 +33,5 @@ $robots = $robots ?? 'index,follow,max-image-preview:large';
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><a class="brand" href="<?= url() ?>"><span>Local Legends</span><strong>Orlando</strong></a><button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button><nav id="site-nav" class="site-nav" aria-label="Primary"><a href="<?= url('stories/') ?>">Stories</a><a href="<?= url('search/') ?>">Search</a><a href="<?= url('categories/') ?>">Categories</a><a href="<?= url('about/') ?>">About</a><a href="<?= url('contact/') ?>">Contact</a><a class="button button-small" href="<?= url('get-featured/') ?>">Get Featured</a></nav></header>
+<header class="site-header"><a class="brand" href="<?= url() ?>"><span>Local Legends</span><strong>Orlando, Florida</strong></a><button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button><nav id="site-nav" class="site-nav" aria-label="Primary"><a href="<?= url('stories/') ?>">Stories</a><a href="<?= url('search/') ?>">Search</a><a href="<?= url('categories/') ?>">Categories</a><a href="<?= url('about/') ?>">About</a><a href="<?= url('contact/') ?>">Contact</a><a class="button button-small" href="<?= url('get-featured/') ?>">Get Featured</a></nav></header>
 <main id="main">
