@@ -15,6 +15,7 @@ expect_same(SITE_URL . '/assets/images/market.svg', media_url(null), 'media fall
 expect_same(SITE_URL . '/assets/images/coffee.svg', media_url('assets/images/coffee.svg'), 'static media URL');
 expect_same(SITE_URL . '/uploads/local-legend.webp', media_url('local-legend.webp'), 'uploaded media URL');
 expect_same([], search_articles(''), 'blank search short-circuits without database access');
+expect_same([], search_articles('coffee'), 'database failures return empty search results');
 
 if ($failures) exit(1);
 echo "All helper checks passed.\n";

@@ -1,5 +1,8 @@
 <?php
-$query = trim($_GET['q'] ?? '');
+require_once __DIR__ . '/../includes/functions.php';
+
+$rawQuery = $_GET['q'] ?? '';
+$query = is_string($rawQuery) ? trim($rawQuery) : '';
 $results = search_articles($query);
 $pageTitle = $query ? 'Search: ' . $query . ' | Local Legends Orlando' : 'Search stories | Local Legends Orlando';
 require '../includes/header.php';

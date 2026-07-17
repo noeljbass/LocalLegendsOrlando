@@ -1,5 +1,6 @@
 <?php
 require '../includes/auth.php';
+prevent_form_caching();
 $sent = false; $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
