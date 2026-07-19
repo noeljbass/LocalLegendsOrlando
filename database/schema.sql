@@ -21,6 +21,10 @@ CREATE TABLE articles (
   profile_social_links TEXT NULL,
   business_phone VARCHAR(40) NULL,
   business_address VARCHAR(255) NULL,
+  profile_display_name VARCHAR(180) NULL,
+  profile_label VARCHAR(120) NULL,
+  profile_bio TEXT NULL,
+  profile_type ENUM('company','author') NOT NULL DEFAULT 'company',
   seo_title VARCHAR(255) NULL,
   meta_description VARCHAR(320) NULL,
   status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
@@ -89,6 +93,28 @@ CREATE TABLE submissions (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX submission_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE article_submissions (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  author_name VARCHAR(150) NOT NULL,
+  author_title VARCHAR(180) NULL,
+  email VARCHAR(190) NOT NULL,
+  website VARCHAR(255) NULL,
+  social_links TEXT NULL,
+  bio TEXT NULL,
+  article_title VARCHAR(255) NOT NULL,
+  article_summary TEXT NULL,
+  answer_expertise TEXT NULL,
+  answer_local TEXT NULL,
+  answer_advice TEXT NULL,
+  answer_resources TEXT NULL,
+  status ENUM('new','reviewing','converted','declined') NOT NULL DEFAULT 'new',
+  article_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX article_submission_status (status),
+  CONSTRAINT fk_article_submission_article FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE media_uploads (
