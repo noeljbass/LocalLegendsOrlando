@@ -19,7 +19,7 @@ $businessPhone = trim((string) ($article['business_phone'] ?? ''));
 $businessPhoneUrl = phone_link_url($businessPhone);
 $businessAddress = trim((string) ($article['business_address'] ?? ''));
 $businessMapUrl = google_maps_address_url($businessAddress);
-$publisherName = $categories ? $categories[0]['name'] : 'Local Legends Orlando';
+$publisherName = preg_replace('/:\s*A Local Legends Story$/i', '', (string) ($article['title'] ?? '')) ?: ($categories ? $categories[0]['name'] : 'Local Legends Orlando');
 ?>
 <article class="article" itemscope itemtype="https://schema.org/Article">
     <header><p class="eyebrow"><?= $categories ? e($categories[0]['name']) : 'Community spotlight' ?></p><h1 itemprop="headline"><?= e($article['title']) ?></h1><p class="article-dek" itemprop="description"><?= e(normalize_article_text($article['excerpt'])) ?></p><div class="byline"><time itemprop="datePublished" datetime="<?= e($article['published_at']) ?>"><?= date('F j, Y', strtotime($article['published_at'])) ?></time></div></header>
