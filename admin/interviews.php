@@ -2,6 +2,19 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_admin();
 
+function ensure_interview_article_columns(): void {
+    $columns = array_column(db()->query('SHOW COLUMNS FROM articles')->fetchAll(), 'Field');
+    if (!in_array('profile_image_id', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_image_id BIGINT UNSIGNED NULL AFTER featured_image_id');
+    if (!in_array('profile_backlink_url', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_backlink_url VARCHAR(255) NULL AFTER profile_image_id');
+    if (!in_array('profile_social_links', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_social_links TEXT NULL AFTER profile_backlink_url');
+}
+
+function interview_media_ids(int $interviewId): array {
+    $statement = db()->prepare("SELECT media_id, media_type FROM interview_media WHERE interview_id=? ORDER BY FIELD(media_type, 'business_photo', 'owner_photo', 'team_photo', 'logo'), id");
+    $statement->execute([$interviewId]);
+    return $statement->fetchAll();
+}
+
 function interview_draft_content(array $interview): string {
     $sections = [
         'Their story' => $interview['story'],
@@ -31,9 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['action'] === 'convert' && !$interview['article_id']) {
         $slug = slugify($interview['business_name']) . '-' . $interview['id'];
         $excerpt = excerpt($interview['story'] ?: $interview['origin_story'], 180);
-        $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status) VALUES (?,?,?,?,?,?,?,?)');
-        $insert->execute([$interview['business_name'] . ': A Local Legends Story', $slug, $excerpt, interview_draft_content($interview), admin_user()['id'], $interview['business_name'] . ' | Local Legends Orlando', $excerpt, 'draft']);
+        ensure_interview_article_columns();
+        $mediaItems = interview_media_ids((int) $interview['id']);
+        $featuredImageId = $mediaItems[0]['media_id'] ?? null;
+        $profileImageId = null;
+        foreach ($mediaItems as $mediaItem) if ($mediaItem['media_type'] === 'owner_photo' || $mediaItem['media_type'] === 'logo') { $profileImageId = $mediaItem['media_id']; break; }
+        $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status,featured_image_id,profile_image_id,profile_backlink_url,profile_social_links) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
+        $insert->execute([$interview['business_name'] . ': A Local Legends Story', $slug, $excerpt, interview_draft_content($interview), admin_user()['id'], $interview['business_name'] . ' | Local Legends Orlando', $excerpt, 'draft', $featuredImageId, $profileImageId, format_external_url((string) $interview['website']), $interview['social_links']]);
         $articleId = (int) db()->lastInsertId();
+        $articleMedia = db()->prepare('INSERT IGNORE INTO article_media (article_id, media_id, sort_order) VALUES (?, ?, ?)');
+        foreach ($mediaItems as $sort => $mediaItem) $articleMedia->execute([$articleId, $mediaItem['media_id'], $sort]);
         db()->prepare("UPDATE interview_submissions SET status='converted', article_id=? WHERE id=?")->execute([$articleId, $id]);
         header('Location: ' . url('admin/article.php?id=' . $articleId)); exit;
     }
