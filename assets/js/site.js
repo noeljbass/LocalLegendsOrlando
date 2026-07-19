@@ -69,21 +69,25 @@ if (interviewForm) {
   const submit = interviewForm.querySelector('[data-submit]');
   const error = interviewForm.querySelector('[data-interview-error]');
   const draftKey = `form-draft:${interviewForm.dataset.draftForm}`;
-  let current = Math.max(0, Math.min(steps.length - 1, Number(JSON.parse(localStorage.getItem(draftKey) || '{}')._step || 0)));
+  let current = 0;
+  try { current = Math.max(0, Math.min(steps.length - 1, Number(JSON.parse(localStorage.getItem(draftKey) || '{}')._step || 0))); } catch (_) { localStorage.removeItem(draftKey); }
   const showStep = () => {
     steps.forEach((step, index) => step.hidden = index !== current);
     progress.forEach((item, index) => item.classList.toggle('active', index === current));
     previous.hidden = current === 0;
-    next.hidden = current === steps.length - 1;
-    submit.hidden = current !== steps.length - 1;
+    const isLastStep = current === steps.length - 1;
+    next.hidden = isLastStep;
+    next.setAttribute('aria-hidden', String(isLastStep));
+    submit.hidden = !isLastStep;
+    submit.setAttribute('aria-hidden', String(!isLastStep));
     try { const draft = JSON.parse(localStorage.getItem(draftKey) || '{}'); draft._step = current; localStorage.setItem(draftKey, JSON.stringify(draft)); } catch (_) {}
   };
   next.addEventListener('click', () => {
     const fields = [...steps[current].querySelectorAll('input, textarea, select')];
     if (!fields.every(field => field.reportValidity())) return;
-    error.hidden = true; current += 1; showStep();
+    error.hidden = true; current = Math.min(current + 1, steps.length - 1); showStep();
   });
-  previous.addEventListener('click', () => { current -= 1; showStep(); });
+  previous.addEventListener('click', () => { current = Math.max(current - 1, 0); showStep(); });
 
   const showError = (message) => { error.textContent = message; error.hidden = false; };
 
@@ -115,5 +119,21 @@ if (interviewForm) {
     submit.disabled = true;
     submit.setAttribute('aria-disabled', 'true');
     submit.textContent = 'Submitting…';
+  });
+}
+
+const articleContent = document.querySelector('[data-article-content]');
+if (articleContent) {
+  document.querySelectorAll('[data-insert-article-html]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const snippet = button.dataset.insertArticleHtml || '';
+      const start = articleContent.selectionStart ?? articleContent.value.length;
+      const end = articleContent.selectionEnd ?? articleContent.value.length;
+      const prefix = start > 0 && !articleContent.value.slice(0, start).endsWith('\n') ? '\n' : '';
+      const suffix = end < articleContent.value.length && !articleContent.value.slice(end).startsWith('\n') ? '\n' : '';
+      articleContent.setRangeText(`${prefix}${snippet}${suffix}`, start, end, 'end');
+      articleContent.focus();
+      articleContent.dispatchEvent(new Event('input', { bubbles: true }));
+    });
   });
 }
