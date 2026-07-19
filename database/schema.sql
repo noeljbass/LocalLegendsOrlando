@@ -38,6 +38,18 @@ CREATE TABLE categories (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Seed the four fixed homepage category destinations.
+-- Keep this idempotent so rerunning schema setup restores the expected names/slugs.
+INSERT INTO categories (name, slug, description) VALUES
+  ('Food & drink', 'restaurants', 'Restaurants, cafés, and local flavor.'),
+  ('Health & wellness', 'health-wellness', 'People helping Orlando feel its best.'),
+  ('Home & services', 'home-services', 'The trusted teams behind everyday life.'),
+  ('Makers & creatives', 'makers-creatives', 'Big ideas, beautiful work, and bold makers.')
+ON DUPLICATE KEY UPDATE
+  name = VALUES(name),
+  slug = VALUES(slug),
+  description = VALUES(description);
+
 CREATE TABLE tags (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
