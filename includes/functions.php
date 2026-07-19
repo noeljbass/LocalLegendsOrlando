@@ -2,7 +2,34 @@
 require_once __DIR__ . '/../config.php';
 function e(?string $value): string { return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'); }
 function url(string $path = ''): string { return SITE_URL . '/' . ltrim($path, '/'); }
-function excerpt(string $text, int $length = 145): string { return mb_strimwidth(trim(strip_tags($text)), 0, $length, '…'); }
+function normalize_article_text(?string $text): string {
+    return str_replace(['\\r\\n', '\\n', '\\r'], ["\n", "\n", "\n"], (string) $text);
+}
+function excerpt(string $text, int $length = 145): string { return mb_strimwidth(trim(strip_tags(normalize_article_text($text))), 0, $length, '…'); }
+function render_article_content(?string $content): string {
+    $content = trim(normalize_article_text($content));
+    if ($content === '') return '';
+    if ($content !== strip_tags($content)) return $content;
+    $paragraphs = preg_split('/\n\s*\n/', $content) ?: [];
+    return implode('', array_map(fn($paragraph) => '<p>' . e(trim($paragraph)) . '</p>', array_filter($paragraphs, fn($paragraph) => trim($paragraph) !== '')));
+}
+function article_columns(): array {
+    static $columns = null;
+    if ($columns === null) {
+        try { $columns = array_column(db()->query('SHOW COLUMNS FROM articles')->fetchAll(), 'Field'); }
+        catch (Throwable $exception) { $columns = []; }
+    }
+    return $columns;
+}
+function optional_article_column(string $column, string $alias = ''): string {
+    return in_array($column, article_columns(), true) ? ', a.' . $column . ($alias ? ' AS ' . $alias : '') : ', NULL AS ' . ($alias ?: $column);
+}
+function article_profile_select_sql(): string {
+    return in_array('profile_image_id', article_columns(), true) ? ', pm.file_name AS profile_image' : ', NULL AS profile_image';
+}
+function article_profile_join_sql(): string {
+    return in_array('profile_image_id', article_columns(), true) ? ' LEFT JOIN media_uploads pm ON pm.id=a.profile_image_id' : '';
+}
 function media_url(?string $fileName, string $fallback = 'assets/images/market.svg'): string {
     if (!$fileName) return url($fallback);
     return url(str_starts_with($fileName, 'assets/') ? $fileName : 'uploads/' . $fileName);
@@ -18,7 +45,7 @@ function compact_slug(string $slug): string {
     return preg_replace('/[^a-z0-9]+/', '', strtolower($slug)) ?: '';
 }
 function get_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
-    $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
+    $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
     $params = [];
     if ($category) { $sql .= ' AND c.slug = ?'; $params[] = $category; }
     if ($tag) { $sql .= ' AND t.slug = ?'; $params[] = $tag; }
@@ -44,7 +71,7 @@ function public_articles(int $limit = 12, ?string $category = null, ?string $tag
 
 function published_article_by_slug(string $slug): ?array {
     try {
-        $sql = "SELECT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id WHERE a.status='published' AND a.slug=? LIMIT 1";
+        $sql = "SELECT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " WHERE a.status='published' AND a.slug=? LIMIT 1";
         $stmt = db()->prepare($sql);
         $stmt->execute([$slug]);
         $article = $stmt->fetch();
@@ -52,7 +79,7 @@ function published_article_by_slug(string $slug): ?array {
 
         $compactSlug = compact_slug($slug);
         if ($compactSlug === '') return null;
-        $stmt = db()->query("SELECT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id WHERE a.status='published'");
+        $stmt = db()->query("SELECT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " WHERE a.status='published'");
         foreach ($stmt->fetchAll() as $candidate) {
             if (compact_slug((string) $candidate['slug']) === $compactSlug || slugify((string) $candidate['title']) === $slug) return $candidate;
         }
@@ -68,7 +95,7 @@ function search_articles(string $query, int $limit = 30): array {
     $pattern = '%' . $query . '%';
     $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author
         FROM articles a
-        LEFT JOIN users u ON u.id=a.author_id
+        LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . "
         LEFT JOIN media_uploads m ON m.id=a.featured_image_id
         LEFT JOIN article_categories ac ON ac.article_id=a.id
         LEFT JOIN categories c ON c.id=ac.category_id

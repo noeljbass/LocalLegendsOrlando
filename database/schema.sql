@@ -16,6 +16,9 @@ CREATE TABLE articles (
   content LONGTEXT NOT NULL,
   author_id BIGINT UNSIGNED NULL,
   featured_image_id BIGINT UNSIGNED NULL,
+  profile_image_id BIGINT UNSIGNED NULL,
+  profile_backlink_url VARCHAR(255) NULL,
+  profile_social_links TEXT NULL,
   seo_title VARCHAR(255) NULL,
   meta_description VARCHAR(320) NULL,
   status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
@@ -87,6 +90,7 @@ CREATE TABLE media_uploads (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE articles ADD CONSTRAINT fk_articles_featured_media FOREIGN KEY (featured_image_id) REFERENCES media_uploads(id) ON DELETE SET NULL;
+ALTER TABLE articles ADD CONSTRAINT fk_articles_profile_media FOREIGN KEY (profile_image_id) REFERENCES media_uploads(id) ON DELETE SET NULL;
 
 CREATE TABLE article_media (
   article_id BIGINT UNSIGNED NOT NULL,
