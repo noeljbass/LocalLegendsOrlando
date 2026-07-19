@@ -40,7 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $uploadedFiles = [];
     $databaseTransaction = false;
     try {
-        verify_csrf();
+        guard_post_payload();
+        verify_csrf(true);
         enforce_form_rate_limit('feature_interview', 120);
         foreach ($fields as $field) $values[$field] = is_string($_POST[$field] ?? null) ? trim($_POST[$field]) : '';
         if ($values['business_name'] === '' || $values['owner_name'] === '' || !filter_var($values['email'], FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Please complete your business name, name, and a valid email address.');
