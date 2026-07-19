@@ -3,6 +3,7 @@ DirectoryIndex index.php
 Options -Indexes
 ErrorDocument 404 /404.php
 RewriteEngine On
+RewriteBase /
 
 # Public URL normalization: remove direct index.php/index.html requests.
 # THE_REQUEST makes these external redirects only, avoiding redirect loops after rewrites.
@@ -19,7 +20,7 @@ RewriteRule ^(?:config\.php|includes/|database/|tests/|\.env) - [F,L,NC]
 # Friendly dynamic story, category, and tag routes.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(story|category|tag)/[^/]+/?$ $1/index.php [L,QSA]
+RewriteRule ^(story|category|tag)/[^/]+/?$ /$1/index.php [L,QSA]
 
 # The domain root is served by the homepage controller.
 RewriteRule ^$ /index.php [L]
