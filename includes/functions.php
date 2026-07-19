@@ -92,6 +92,24 @@ function slugify(string $value, string $fallback = 'story'): string {
 function compact_slug(string $slug): string {
     return preg_replace('/[^a-z0-9]+/', '', strtolower($slug)) ?: '';
 }
+
+function homepage_categories(): array {
+    return [
+        ['name' => 'Food & drink', 'slug' => 'restaurants', 'description' => 'Restaurants, cafés, and local flavor.'],
+        ['name' => 'Health & wellness', 'slug' => 'health-wellness', 'description' => 'People helping Orlando feel its best.'],
+        ['name' => 'Home & services', 'slug' => 'home-services', 'description' => 'The trusted teams behind everyday life.'],
+        ['name' => 'Makers & creatives', 'slug' => 'makers-creatives', 'description' => 'Big ideas, beautiful work, and bold makers.'],
+    ];
+}
+
+function ensure_homepage_categories(): void {
+    try {
+        $statement = db()->prepare('INSERT INTO categories (name, slug, description) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), slug=VALUES(slug), description=VALUES(description)');
+        foreach (homepage_categories() as $category) {
+            $statement->execute([$category['name'], $category['slug'], $category['description']]);
+        }
+    } catch (Throwable $exception) {}
+}
 function get_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
     $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
     $params = [];
