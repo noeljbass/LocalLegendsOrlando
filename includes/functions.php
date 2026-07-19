@@ -7,6 +7,16 @@ function media_url(?string $fileName, string $fallback = 'assets/images/market.s
     if (!$fileName) return url($fallback);
     return url(str_starts_with($fileName, 'assets/') ? $fileName : 'uploads/' . $fileName);
 }
+
+function slugify(string $value, string $fallback = 'story'): string {
+    $value = str_replace(["'", "’", "‘", "`"], '', $value);
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $value), '-'));
+    return $slug ?: $fallback;
+}
+
+function compact_slug(string $slug): string {
+    return preg_replace('/[^a-z0-9]+/', '', strtolower($slug)) ?: '';
+}
 function get_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
     $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
     $params = [];
@@ -34,9 +44,19 @@ function public_articles(int $limit = 12, ?string $category = null, ?string $tag
 
 function published_article_by_slug(string $slug): ?array {
     try {
-        $stmt = db()->prepare("SELECT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id WHERE a.status='published' AND a.slug=? LIMIT 1");
+        $sql = "SELECT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id WHERE a.status='published' AND a.slug=? LIMIT 1";
+        $stmt = db()->prepare($sql);
         $stmt->execute([$slug]);
-        return $stmt->fetch() ?: null;
+        $article = $stmt->fetch();
+        if ($article) return $article;
+
+        $compactSlug = compact_slug($slug);
+        if ($compactSlug === '') return null;
+        $stmt = db()->query("SELECT a.*, m.file_name AS image, u.name AS author FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id WHERE a.status='published'");
+        foreach ($stmt->fetchAll() as $candidate) {
+            if (compact_slug((string) $candidate['slug']) === $compactSlug || slugify((string) $candidate['title']) === $slug) return $candidate;
+        }
+        return null;
     } catch (Throwable $exception) {
         return null;
     }

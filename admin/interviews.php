@@ -29,8 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: ' . url('admin/interviews.php?notice=deleted')); exit;
     }
     if ($_POST['action'] === 'convert' && !$interview['article_id']) {
-        $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $interview['business_name']), '-'));
-        $slug .= '-' . $interview['id'];
+        $slug = slugify($interview['business_name']) . '-' . $interview['id'];
         $excerpt = excerpt($interview['story'] ?: $interview['origin_story'], 180);
         $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status) VALUES (?,?,?,?,?,?,?,?)');
         $insert->execute([$interview['business_name'] . ': A Local Legends Story', $slug, $excerpt, interview_draft_content($interview), admin_user()['id'], $interview['business_name'] . ' | Local Legends Orlando', $excerpt, 'draft']);

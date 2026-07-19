@@ -2,10 +2,6 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_admin();
 
-function article_slug(string $value): string {
-    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $value), '-'));
-    return $slug ?: 'story';
-}
 function selected_ids(string $table, int $articleId): array {
     $column = $table === 'categories' ? 'category_id' : 'tag_id';
     $statement = db()->prepare("SELECT $column FROM article_{$table} WHERE article_id=?");
@@ -23,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->prepare('DELETE FROM articles WHERE id=?')->execute([$id]);
         header('Location: ' . url('admin/articles.php')); exit;
     }
-    $title = trim($_POST['title']); $slug = article_slug($_POST['slug'] ?: $title);
+    $title = trim($_POST['title']); $slug = slugify($_POST['slug'] ?: $title);
     $status = in_array($_POST['status'], ['draft','published','archived'], true) ? $_POST['status'] : 'draft';
     $publishedAt = $status === 'published' ? ($_POST['published_at'] ? date('Y-m-d H:i:s', strtotime($_POST['published_at'])) : date('Y-m-d H:i:s')) : null;
     $imageId = (int) ($_POST['featured_image_id'] ?? 0) ?: null;
