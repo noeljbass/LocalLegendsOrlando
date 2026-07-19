@@ -17,6 +17,8 @@ expect_same('Hello…', excerpt('Hello Orlando', 6), 'excerpt truncation');
 expect_same(SITE_URL . '/assets/images/market.svg', media_url(null), 'media fallback URL');
 expect_same(SITE_URL . '/assets/images/coffee.svg', media_url('assets/images/coffee.svg'), 'static media URL');
 expect_same(SITE_URL . '/uploads/local-legend.webp', media_url('local-legend.webp'), 'uploaded media URL');
+expect_same('zeigers-auto-detailing', slugify("Zeiger's Auto Detailing"), 'possessive article slugs remove apostrophes');
+expect_same('zeigersautodetailing', compact_slug('zeiger-s-auto-detailing'), 'compact slug ignores separators');
 expect_same([], search_articles(''), 'blank search short-circuits without database access');
 expect_same([], search_articles('coffee'), 'database failures return empty search results');
 $csrfToken = csrf_token();
