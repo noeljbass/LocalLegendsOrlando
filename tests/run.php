@@ -14,6 +14,8 @@ function expect_same(mixed $expected, mixed $actual, string $name): void {
 
 expect_same('&lt;Orlando &amp; Co&gt;', e('<Orlando & Co>'), 'HTML escaping');
 expect_same('Hello…', excerpt('Hello Orlando', 6), 'excerpt truncation');
+expect_same("Line one\nLine two", normalize_article_text('Line one\\nLine two'), 'literal newline markers are normalized');
+expect_same('<p>Line one</p><p>Line two</p>', render_article_content('Line one\\n\\nLine two'), 'plain story content renders paragraphs without literal newline markers');
 expect_same(SITE_URL . '/assets/images/market.svg', media_url(null), 'media fallback URL');
 expect_same(SITE_URL . '/assets/images/coffee.svg', media_url('assets/images/coffee.svg'), 'static media URL');
 expect_same(SITE_URL . '/uploads/local-legend.webp', media_url('local-legend.webp'), 'uploaded media URL');
