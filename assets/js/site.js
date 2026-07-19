@@ -82,6 +82,7 @@ if (interviewForm) {
     submit.setAttribute('aria-hidden', String(!isLastStep));
     try { const draft = JSON.parse(localStorage.getItem(draftKey) || '{}'); draft._step = current; localStorage.setItem(draftKey, JSON.stringify(draft)); } catch (_) {}
   };
+  showStep();
   next.addEventListener('click', () => {
     const fields = [...steps[current].querySelectorAll('input, textarea, select')];
     if (!fields.every(field => field.reportValidity())) return;
