@@ -42,6 +42,13 @@ function format_external_url(string $url): string {
     return preg_match('/^https?:\/\//i', $url) ? $url : 'https://' . $url;
 }
 
+
+function google_maps_address_url(string $address): string {
+    $address = trim($address);
+    if ($address === '') return '';
+    return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($address);
+}
+
 function parse_social_links(?string $links): array {
     $items = [];
     foreach (preg_split('/[\r\n,]+/', normalize_article_text($links)) ?: [] as $line) {
@@ -111,7 +118,7 @@ function ensure_homepage_categories(): void {
     } catch (Throwable $exception) {}
 }
 function get_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
-    $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
+    $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . optional_article_column('business_address') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
     $params = [];
     if ($category) { $sql .= ' AND c.slug = ?'; $params[] = $category; }
     if ($tag) { $sql .= ' AND t.slug = ?'; $params[] = $tag; }
@@ -137,7 +144,7 @@ function public_articles(int $limit = 12, ?string $category = null, ?string $tag
 
 function published_article_by_slug(string $slug): ?array {
     try {
-        $sql = "SELECT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " WHERE a.status='published' AND a.slug=? LIMIT 1";
+        $sql = "SELECT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . optional_article_column('business_address') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " WHERE a.status='published' AND a.slug=? LIMIT 1";
         $stmt = db()->prepare($sql);
         $stmt->execute([$slug]);
         $article = $stmt->fetch();
@@ -145,7 +152,7 @@ function published_article_by_slug(string $slug): ?array {
 
         $compactSlug = compact_slug($slug);
         if ($compactSlug === '') return null;
-        $stmt = db()->query("SELECT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " WHERE a.status='published'");
+        $stmt = db()->query("SELECT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . optional_article_column('business_address') . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " WHERE a.status='published'");
         foreach ($stmt->fetchAll() as $candidate) {
             if (compact_slug((string) $candidate['slug']) === $compactSlug || slugify((string) $candidate['title']) === $slug) return $candidate;
         }
