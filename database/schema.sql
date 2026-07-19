@@ -19,6 +19,7 @@ CREATE TABLE articles (
   profile_image_id BIGINT UNSIGNED NULL,
   profile_backlink_url VARCHAR(255) NULL,
   profile_social_links TEXT NULL,
+  business_phone VARCHAR(40) NULL,
   business_address VARCHAR(255) NULL,
   seo_title VARCHAR(255) NULL,
   meta_description VARCHAR(320) NULL,
