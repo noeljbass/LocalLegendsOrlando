@@ -7,6 +7,7 @@ function ensure_interview_article_columns(): void {
     if (!in_array('profile_image_id', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_image_id BIGINT UNSIGNED NULL AFTER featured_image_id');
     if (!in_array('profile_backlink_url', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_backlink_url VARCHAR(255) NULL AFTER profile_image_id');
     if (!in_array('profile_social_links', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_social_links TEXT NULL AFTER profile_backlink_url');
+    if (!in_array('business_phone', $columns, true)) db()->exec('ALTER TABLE articles ADD business_phone VARCHAR(40) NULL AFTER profile_social_links');
 }
 
 function interview_media_ids(int $interviewId): array {
@@ -49,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $featuredImageId = $mediaItems[0]['media_id'] ?? null;
         $profileImageId = null;
         foreach ($mediaItems as $mediaItem) if ($mediaItem['media_type'] === 'owner_photo' || $mediaItem['media_type'] === 'logo') { $profileImageId = $mediaItem['media_id']; break; }
-        $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status,featured_image_id,profile_image_id,profile_backlink_url,profile_social_links) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
-        $insert->execute([$interview['business_name'] . ': A Local Legends Story', $slug, $excerpt, interview_draft_content($interview), admin_user()['id'], $interview['business_name'] . ' | Local Legends Orlando', $excerpt, 'draft', $featuredImageId, $profileImageId, format_external_url((string) $interview['website']), $interview['social_links']]);
+        $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status,featured_image_id,profile_image_id,profile_backlink_url,profile_social_links,business_phone) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $insert->execute([$interview['business_name'] . ': A Local Legends Story', $slug, $excerpt, interview_draft_content($interview), admin_user()['id'], $interview['business_name'] . ' | Local Legends Orlando', $excerpt, 'draft', $featuredImageId, $profileImageId, format_external_url((string) $interview['website']), $interview['social_links'], $interview['phone']]);
         $articleId = (int) db()->lastInsertId();
         $articleMedia = db()->prepare('INSERT IGNORE INTO article_media (article_id, media_id, sort_order) VALUES (?, ?, ?)');
         foreach ($mediaItems as $sort => $mediaItem) $articleMedia->execute([$articleId, $mediaItem['media_id'], $sort]);
