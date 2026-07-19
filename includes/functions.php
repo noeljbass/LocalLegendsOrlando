@@ -35,6 +35,54 @@ function media_url(?string $fileName, string $fallback = 'assets/images/market.s
     return url(str_starts_with($fileName, 'assets/') ? $fileName : 'uploads/' . $fileName);
 }
 
+
+function format_external_url(string $url): string {
+    $url = trim($url);
+    if ($url === '') return '';
+    return preg_match('/^https?:\/\//i', $url) ? $url : 'https://' . $url;
+}
+
+function parse_social_links(?string $links): array {
+    $items = [];
+    foreach (preg_split('/[\r\n,]+/', normalize_article_text($links)) ?: [] as $line) {
+        $line = trim($line);
+        if ($line === '') continue;
+        $label = '';
+        $href = $line;
+        if (preg_match('/^([A-Za-z0-9 .&+-]+):\s*(.+)$/', $line, $parts)) {
+            $label = trim($parts[1]);
+            $href = trim($parts[2]);
+            if (preg_match('/^\/\//', $href)) $href = 'https:' . $href;
+            elseif (!preg_match('/^https?:\/\//i', $href) && preg_match('/^[^\s]+\.[^\s]+/', $href)) $href = 'https://' . $href;
+        }
+        if (!preg_match('/^https?:\/\//i', $href) && preg_match('/https?:\/\/\S+/i', $line, $match)) $href = $match[0];
+        if ($label === '') $label = social_platform_from_url($href);
+        $items[] = ['label' => $label ?: 'Social profile', 'url' => format_external_url($href), 'platform' => social_platform_from_url($label . ' ' . $href)];
+    }
+    return $items;
+}
+
+function social_platform_from_url(string $value): string {
+    $value = strtolower($value);
+    foreach (['facebook', 'instagram', 'tiktok', 'youtube', 'linkedin', 'pinterest', 'x.com', 'twitter'] as $platform) {
+        if (str_contains($value, $platform)) return $platform === 'x.com' || $platform === 'twitter' ? 'x' : $platform;
+    }
+    return 'other';
+}
+
+function social_icon(string $platform): string {
+    $labels = ['facebook'=>'f', 'instagram'=>'◎', 'tiktok'=>'♪', 'youtube'=>'▶', 'linkedin'=>'in', 'pinterest'=>'p', 'x'=>'𝕏', 'other'=>'↗'];
+    return $labels[$platform] ?? $labels['other'];
+}
+
+function article_media_gallery(int $articleId): array {
+    try {
+        $statement = db()->prepare('SELECT m.* FROM media_uploads m JOIN article_media am ON am.media_id=m.id WHERE am.article_id=? ORDER BY am.sort_order, m.id');
+        $statement->execute([$articleId]);
+        return $statement->fetchAll();
+    } catch (Throwable $exception) { return []; }
+}
+
 function slugify(string $value, string $fallback = 'story'): string {
     $value = str_replace(["'", "’", "‘", "`"], '', $value);
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $value), '-'));
