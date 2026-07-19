@@ -39,7 +39,7 @@ $robots = $robots ?? 'index,follow,max-image-preview:large';
 <meta name="twitter:title" content="<?= e($pageTitle) ?>">
 <meta name="twitter:description" content="<?= e($metaDescription) ?>">
 <meta name="twitter:image" content="<?= e($shareImage) ?>">
-<link rel="stylesheet" href="<?= url('assets/css/site.css') ?>">
+<link rel="stylesheet" href="<?= url('assets/css/site.css') ?>?v=<?= @filemtime(__DIR__ . '/../assets/css/site.css') ?: 1 ?>">
 <script type="application/ld+json"><?= json_encode(['@context'=>'https://schema.org','@type'=>'Organization','name'=>SITE_NAME,'url'=>SITE_URL,'email'=>ADMIN_EMAIL,'areaServed'=>['@type'=>'AdministrativeArea','name'=>'Central Florida']], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
 </head>
 <body>

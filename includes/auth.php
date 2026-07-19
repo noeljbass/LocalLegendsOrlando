@@ -31,7 +31,7 @@ function csrf_token(): string {
     return $timestamp . '.' . $nonce . '.' . $signature;
 }
 
-function verify_csrf(): void {
+function verify_csrf(bool $graceful = false): void {
     start_session();
     $submittedToken = $_POST['csrf'] ?? '';
     $sessionToken = $_SESSION['csrf'] ?? '';
@@ -41,6 +41,9 @@ function verify_csrf(): void {
     $matchesSignedToken = is_string($submittedToken) && valid_signed_csrf_token($submittedToken);
 
     if (!$matchesSession && !$matchesCookie && !$matchesSignedToken) {
+        // Public forms pass $graceful=true so visitors see a friendly message on
+        // the form page (with their answers preserved) instead of a bare 403.
+        if ($graceful) throw new RuntimeException('This page was open for a while and the form expired. Please try submitting again now.');
         http_response_code(403);
         exit('Invalid form request. Please try again.');
     }

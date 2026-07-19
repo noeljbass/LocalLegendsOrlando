@@ -22,6 +22,6 @@
     <p class="copyright">© <?= date('Y') ?> Local Legends Orlando. Made for our community.</p>
     <p class="footer-credit">Brought to you by <span class="footer-credit-name">BastionTech</span>.</p>
 </footer>
-<script src="<?= url('assets/js/site.js') ?>" defer></script>
+<script src="<?= url('assets/js/site.js') ?>?v=<?= @filemtime(__DIR__ . '/../assets/js/site.js') ?: 1 ?>" defer></script>
 </body>
 </html>

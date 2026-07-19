@@ -70,6 +70,33 @@ function send_site_mail(string $to, string $subject, string $message, ?string $r
     return mail($to, str_replace(["\r", "\n"], '', $subject), $message, implode("\r\n", $headers));
 }
 
+function ini_bytes(string $value): int {
+    $value = trim($value);
+    if ($value === '' || $value === '-1' || $value === '0') return PHP_INT_MAX;
+    $unit = strtolower(substr($value, -1));
+    $number = (float) $value;
+    return (int) match ($unit) {
+        'g' => $number * 1073741824,
+        'm' => $number * 1048576,
+        'k' => $number * 1024,
+        default => $number,
+    };
+}
+
+/**
+ * When a POST body exceeds post_max_size, PHP silently discards $_POST and
+ * $_FILES. Without this guard the CSRF check then fails with a bare 403 page,
+ * which is what visitors uploading large phone photos were hitting.
+ */
+function guard_post_payload(): void {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') return;
+    $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+    if ($contentLength <= 0) return;
+    if ($contentLength > ini_bytes((string) ini_get('post_max_size')) || (empty($_POST) && empty($_FILES))) {
+        throw new RuntimeException('Your submission was too large for the server to accept. Please use photos under 5 MB each, or fewer photos, and try again. Your written answers are still saved on this device.');
+    }
+}
+
 function prevent_form_caching(): void {
     if (headers_sent()) return;
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
