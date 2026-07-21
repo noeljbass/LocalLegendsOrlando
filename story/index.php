@@ -1,6 +1,7 @@
 <?php
 require '../includes/functions.php';
-$slug = basename(rtrim($_SERVER['REQUEST_URI'], '/'));
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+$slug = basename(rtrim($requestPath, '/'));
 $articles = public_articles(3);
 $article = published_article_by_slug($slug) ?: current(array_filter($articles, fn($item) => $item['slug'] === $slug));
 if (!$article) { http_response_code(404); exit('Story not found.'); }
