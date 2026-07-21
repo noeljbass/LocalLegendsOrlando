@@ -1,0 +1,93 @@
+CREATE TABLE clients (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(190) NOT NULL,
+  from_email VARCHAR(190) DEFAULT NULL,
+  from_name VARCHAR(190) DEFAULT NULL,
+  smtp_host VARCHAR(190) DEFAULT NULL,
+  smtp_port INT DEFAULT NULL,
+  smtp_username VARCHAR(190) DEFAULT NULL,
+  smtp_password_encrypted VARCHAR(255) DEFAULT NULL,
+  smtp_encryption VARCHAR(20) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE admin_users (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(190) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE email_sequences (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT UNSIGNED NOT NULL,
+  name VARCHAR(190) NOT NULL,
+  status ENUM('active','paused') NOT NULL DEFAULT 'paused',
+  description TEXT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX (client_id),
+  CONSTRAINT fk_sequences_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE email_templates (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sequence_id INT UNSIGNED NOT NULL,
+  day_number INT UNSIGNED NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  html_body MEDIUMTEXT NOT NULL,
+  plain_text_body MEDIUMTEXT DEFAULT NULL,
+  status ENUM('active','paused') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_sequence_day (sequence_id, day_number),
+  CONSTRAINT fk_templates_sequence FOREIGN KEY (sequence_id) REFERENCES email_sequences(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE subscribers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  client_id INT UNSIGNED NOT NULL,
+  sequence_id INT UNSIGNED NOT NULL,
+  name VARCHAR(190) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  signup_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status ENUM('active','unsubscribed','bounced','paused') NOT NULL DEFAULT 'active',
+  unsubscribe_token VARCHAR(64) NOT NULL UNIQUE,
+  signup_ip VARCHAR(45) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX (sequence_id, status),
+  UNIQUE KEY uniq_active_lookup (sequence_id, email, status),
+  CONSTRAINT fk_subscribers_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  CONSTRAINT fk_subscribers_sequence FOREIGN KEY (sequence_id) REFERENCES email_sequences(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE email_send_log (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  subscriber_id INT UNSIGNED NOT NULL,
+  sequence_id INT UNSIGNED NOT NULL,
+  template_id INT UNSIGNED DEFAULT NULL,
+  day_number INT UNSIGNED NOT NULL,
+  recipient_email VARCHAR(190) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  sent_status ENUM('success','failed') NOT NULL,
+  error_message TEXT DEFAULT NULL,
+  sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (subscriber_id, sequence_id, day_number),
+  CONSTRAINT fk_log_subscriber FOREIGN KEY (subscriber_id) REFERENCES subscribers(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE unsubscribes (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  subscriber_id INT UNSIGNED NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  unsubscribe_token VARCHAR(64) NOT NULL,
+  ip_address VARCHAR(45) DEFAULT NULL,
+  user_agent VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_unsubscribes_subscriber FOREIGN KEY (subscriber_id) REFERENCES subscribers(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
