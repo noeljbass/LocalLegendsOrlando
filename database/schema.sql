@@ -25,6 +25,7 @@ CREATE TABLE articles (
   profile_label VARCHAR(120) NULL,
   profile_bio TEXT NULL,
   profile_type ENUM('company','author') NOT NULL DEFAULT 'company',
+  public_type ENUM('story','article') NOT NULL DEFAULT 'story',
   seo_title VARCHAR(255) NULL,
   meta_description VARCHAR(320) NULL,
   status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',

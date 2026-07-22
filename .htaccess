@@ -11,8 +11,8 @@ RewriteCond %{THE_REQUEST} \s/+index\.(?:php|html?)[?\s] [NC]
 RewriteRule ^index\.(?:php|html?)$ / [R=302,L,NE]
 
 # Normalize public section index files to their trailing-slash URLs.
-RewriteCond %{THE_REQUEST} \s/+((?:about|categories|category|contact|feature-interview|get-featured|privacy|search|stories|story|tag|terms)/)index\.(?:php|html?)[?\s] [NC]
-RewriteRule ^((?:about|categories|category|contact|feature-interview|get-featured|privacy|search|stories|story|tag|terms)/)index\.(?:php|html?)$ /$1 [R=302,L,NE]
+RewriteCond %{THE_REQUEST} \s/+((?:about|article|categories|category|contact|feature-interview|get-featured|privacy|search|stories|story|tag|terms)/)index\.(?:php|html?)[?\s] [NC]
+RewriteRule ^((?:about|article|categories|category|contact|feature-interview|get-featured|privacy|search|stories|story|tag|terms)/)index\.(?:php|html?)$ /$1 [R=302,L,NE]
 
 # Direct access to application internals is never part of the public site.
 RewriteRule ^(?:config\.php|includes/|database/|tests/|\.env) - [F,L,NC]
@@ -20,7 +20,7 @@ RewriteRule ^(?:config\.php|includes/|database/|tests/|\.env) - [F,L,NC]
 # Friendly dynamic story, category, and tag routes.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(story|category|tag)/[^/]+/?$ /$1/index.php [L,QSA]
+RewriteRule ^(story|article|category|tag)/[^/]+/?$ /$1/index.php [L,QSA]
 
 # The domain root is served by the homepage controller.
 RewriteRule ^$ /index.php [L]

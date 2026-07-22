@@ -4,7 +4,7 @@ $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
 $slug = basename(rtrim($requestPath, '/'));
 $articles = public_articles(3);
 $article = published_article_by_slug($slug) ?: current(array_filter($articles, fn($item) => $item['slug'] === $slug));
-if (!$article) { http_response_code(404); exit('Story not found.'); }
+if (!$article) { http_response_code(404); exit('Article not found.'); }
 $isDatabaseArticle = isset($article['id']);
 $expectedPublicType = basename(__DIR__);
 if (($article['public_type'] ?? 'story') !== $expectedPublicType) { header('Location: ' . article_public_url($article), true, 301); exit; }
