@@ -10,6 +10,7 @@ function ensure_guest_article_workflow(): void {
         if (!in_array('profile_label', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_label VARCHAR(120) NULL AFTER profile_display_name');
         if (!in_array('profile_bio', $columns, true)) db()->exec('ALTER TABLE articles ADD profile_bio TEXT NULL AFTER profile_label');
         if (!in_array('profile_type', $columns, true)) db()->exec("ALTER TABLE articles ADD profile_type ENUM('company','author') NOT NULL DEFAULT 'company' AFTER profile_bio");
+        if (!in_array('public_type', $columns, true)) db()->exec("ALTER TABLE articles ADD public_type ENUM('story','article') NOT NULL DEFAULT 'story' AFTER profile_type");
     } catch (Throwable $exception) {}
 }
 
@@ -39,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['action'] === 'convert' && !$submission['article_id']) {
         $slug = slugify($submission['article_title']) . '-' . $submission['id'];
         $excerpt = excerpt($submission['article_summary'] ?: $submission['answer_expertise'], 180);
-        $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status,profile_backlink_url,profile_social_links,profile_display_name,profile_label,profile_bio,profile_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-        $insert->execute([$submission['article_title'], $slug, $excerpt, guest_article_draft_content($submission), admin_user()['id'], $submission['article_title'] . ' | Local Legends Orlando', $excerpt, 'draft', format_external_url((string) $submission['website']), $submission['social_links'], $submission['author_name'], $submission['author_title'], $submission['bio'], 'author']);
+        $insert = db()->prepare('INSERT INTO articles (title,slug,excerpt,content,author_id,seo_title,meta_description,status,profile_backlink_url,profile_social_links,profile_display_name,profile_label,profile_bio,profile_type,public_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $insert->execute([$submission['article_title'], $slug, $excerpt, guest_article_draft_content($submission), admin_user()['id'], $submission['article_title'] . ' | Local Legends Orlando', $excerpt, 'draft', format_external_url((string) $submission['website']), $submission['social_links'], $submission['author_name'], $submission['author_title'], $submission['bio'], 'author', 'article']);
         $articleId = (int) db()->lastInsertId();
         db()->prepare("UPDATE article_submissions SET status='converted', article_id=? WHERE id=?")->execute([$articleId, $id]);
         header('Location: ' . url('admin/article.php?id=' . $articleId)); exit;
