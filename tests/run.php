@@ -21,6 +21,9 @@ expect_same(SITE_URL . '/assets/images/coffee.svg', media_url('assets/images/cof
 expect_same(SITE_URL . '/uploads/local-legend.webp', media_url('local-legend.webp'), 'uploaded media URL');
 expect_same('zeigers-auto-detailing', slugify("Zeiger's Auto Detailing"), 'possessive article slugs remove apostrophes');
 expect_same('zeigersautodetailing', compact_slug('zeiger-s-auto-detailing'), 'compact slug ignores separators');
+expect_same('story/east-end-market-community-through-food/', article_public_path(demo_articles()[0]), 'demo stories use story public paths');
+expect_same(3, count(public_stories(3)), 'public story helper filters demo stories');
+expect_same(0, count(public_editorial_articles(3)), 'public article helper excludes demo stories');
 expect_same('https://www.google.com/maps/search/?api=1&query=123%20Main%20St%2C%20Orlando%2C%20FL', google_maps_address_url(' 123 Main St, Orlando, FL '), 'Google Maps address URLs are generated');
 expect_same('tel:+14075550100', phone_link_url(' +1 (407) 555-0100 '), 'Phone links are normalized for tel URLs');
 expect_same([], search_articles(''), 'blank search short-circuits without database access');

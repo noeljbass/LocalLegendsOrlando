@@ -133,29 +133,50 @@ function ensure_homepage_categories(): void {
         }
     } catch (Throwable $exception) {}
 }
-function get_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
+function get_articles(int $limit = 12, ?string $category = null, ?string $tag = null, ?string $publicType = null): array {
     $sql = "SELECT DISTINCT a.*, m.file_name AS image, u.name AS author" . article_profile_select_sql() . optional_article_column('profile_backlink_url') . optional_article_column('profile_social_links') . optional_article_column('business_phone') . optional_article_column('business_address') . optional_article_column('profile_display_name') . optional_article_column('profile_label') . optional_article_column('profile_bio') . optional_article_column('profile_type') . article_public_type_select_sql() . " FROM articles a LEFT JOIN media_uploads m ON m.id=a.featured_image_id LEFT JOIN users u ON u.id=a.author_id" . article_profile_join_sql() . " LEFT JOIN article_categories ac ON ac.article_id=a.id LEFT JOIN categories c ON c.id=ac.category_id LEFT JOIN article_tags at ON at.article_id=a.id LEFT JOIN tags t ON t.id=at.tag_id WHERE a.status='published'";
     $params = [];
     if ($category) { $sql .= ' AND c.slug = ?'; $params[] = $category; }
     if ($tag) { $sql .= ' AND t.slug = ?'; $params[] = $tag; }
+    if ($publicType) {
+        if (in_array('public_type', article_columns(), true)) {
+            $sql .= ' AND a.public_type = ?';
+            $params[] = $publicType;
+        } elseif (in_array('profile_type', article_columns(), true)) {
+            $sql .= $publicType === 'article' ? " AND a.profile_type = 'author'" : " AND (a.profile_type IS NULL OR a.profile_type <> 'author')";
+        } elseif ($publicType === 'article') {
+            return [];
+        }
+    }
     $sql .= ' ORDER BY a.is_featured DESC, a.published_at DESC LIMIT ' . (int)$limit;
     $stmt = db()->prepare($sql); $stmt->execute($params); return $stmt->fetchAll();
 }
 function article_categories(int $articleId): array { $s=db()->prepare('SELECT c.* FROM categories c JOIN article_categories ac ON ac.category_id=c.id WHERE ac.article_id=?'); $s->execute([$articleId]); return $s->fetchAll(); }
 function article_tags(int $articleId): array { $s=db()->prepare('SELECT t.* FROM tags t JOIN article_tags at ON at.tag_id=t.id WHERE at.article_id=?'); $s->execute([$articleId]); return $s->fetchAll(); }
 function demo_articles(): array { return [
- ['title'=>'How East End Market Continues to Grow Community Through Food','slug'=>'east-end-market-community-through-food','excerpt'=>'Inside the local gathering place where Orlando makers, food lovers, and neighbors connect.','image'=>'assets/images/market.svg','author'=>'Local Legends Team','published_at'=>'2026-06-30'],
- ['title'=>'Meet the Makers Bringing Color to Winter Park','slug'=>'winter-park-makers','excerpt'=>'These creative small-business owners are making every corner of the city feel more personal.','image'=>'assets/images/makers.svg','author'=>'Local Legends Team','published_at'=>'2026-06-21'],
- ['title'=>'The Family Behind a Beloved Orlando Coffee Ritual','slug'=>'orlando-coffee-ritual','excerpt'=>'A conversation about hospitality, heritage, and finding joy in the everyday cup.','image'=>'assets/images/coffee.svg','author'=>'Local Legends Team','published_at'=>'2026-06-12']
+ ['title'=>'How East End Market Continues to Grow Community Through Food','slug'=>'east-end-market-community-through-food','excerpt'=>'Inside the local gathering place where Orlando makers, food lovers, and neighbors connect.','image'=>'assets/images/market.svg','author'=>'Local Legends Team','published_at'=>'2026-06-30','public_type'=>'story'],
+ ['title'=>'Meet the Makers Bringing Color to Winter Park','slug'=>'winter-park-makers','excerpt'=>'These creative small-business owners are making every corner of the city feel more personal.','image'=>'assets/images/makers.svg','author'=>'Local Legends Team','published_at'=>'2026-06-21','public_type'=>'story'],
+ ['title'=>'The Family Behind a Beloved Orlando Coffee Ritual','slug'=>'orlando-coffee-ritual','excerpt'=>'A conversation about hospitality, heritage, and finding joy in the everyday cup.','image'=>'assets/images/coffee.svg','author'=>'Local Legends Team','published_at'=>'2026-06-12','public_type'=>'story']
 ]; }
 
-function public_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
+function public_articles(int $limit = 12, ?string $category = null, ?string $tag = null, ?string $publicType = null): array {
     try {
-        $articles = get_articles($limit, $category, $tag);
-        return $articles ?: (!$category && !$tag ? demo_articles() : []);
-    } catch (Throwable $exception) {
-        return !$category && !$tag ? demo_articles() : [];
-    }
+        $articles = get_articles($limit, $category, $tag, $publicType);
+        if ($articles) return $articles;
+    } catch (Throwable $exception) {}
+
+    if ($category || $tag) return [];
+    $demoArticles = demo_articles();
+    if ($publicType) $demoArticles = array_values(array_filter($demoArticles, fn($article) => ($article['public_type'] ?? 'story') === $publicType));
+    return array_slice($demoArticles, 0, $limit);
+}
+
+function public_stories(int $limit = 12, ?string $category = null, ?string $tag = null): array {
+    return public_articles($limit, $category, $tag, 'story');
+}
+
+function public_editorial_articles(int $limit = 12, ?string $category = null, ?string $tag = null): array {
+    return public_articles($limit, $category, $tag, 'article');
 }
 
 function published_article_by_slug(string $slug): ?array {
