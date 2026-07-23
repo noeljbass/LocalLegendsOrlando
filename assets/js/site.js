@@ -138,3 +138,77 @@ if (articleContent) {
     });
   });
 }
+
+const articleEditor = document.querySelector('[data-article-editor]');
+if (articleEditor) {
+  const slugField = articleEditor.elements.namedItem('slug');
+  const titleField = articleEditor.elements.namedItem('title');
+  const publicTypeField = articleEditor.elements.namedItem('public_type');
+  const emptyMessage = articleEditor.querySelector('[data-badge-empty]');
+  const badgeContent = articleEditor.querySelector('[data-badge-content]');
+  const htmlField = articleEditor.querySelector('[data-badge-html]');
+  const urlField = articleEditor.querySelector('[data-badge-url]');
+  const preview = articleEditor.querySelector('[data-badge-preview]');
+  const siteUrl = (articleEditor.dataset.siteUrl || '').replace(/\/+$/, '');
+  const logoUrl = articleEditor.dataset.badgeLogoUrl || '';
+  const slugifyForBadge = (value) => {
+    const slug = String(value || '').replace(/['’‘`]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return slug;
+  };
+  const escapeAttribute = (value) => String(value || '').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+  const publicPath = (slug, publicType) => `${publicType === 'article' ? 'article' : 'story'}/${slug}/`;
+  const buildTrackedUrl = (slug, publicType) => {
+    const base = `${siteUrl}/${publicPath(slug, publicType)}`;
+    const params = new URLSearchParams({
+      utm_source: 'featured_business_website',
+      utm_medium: 'referral',
+      utm_campaign: 'featured_on_badge',
+      utm_content: slug,
+    });
+    return `${base}${base.includes('?') ? '&' : '?'}${params.toString()}`;
+  };
+  const buildBadgeHtml = (trackedUrl) => `<div style="text-align:center;">
+    <div style="margin-bottom:8px; font-size:14px; line-height:1.4;">
+        Featured on
+    </div>
+
+    <a href="${escapeAttribute(trackedUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Read our feature on Local Legends Orlando">
+        <img src="${escapeAttribute(logoUrl)}" alt="Featured on Local Legends Orlando" style="display:block; width:200px; max-width:100%; height:auto; margin:0 auto; border:0;">
+    </a>
+</div>`;
+  const updateBadge = () => {
+    const slug = slugifyForBadge(slugField?.value || titleField?.value || '');
+    if (!slug) {
+      if (emptyMessage) emptyMessage.hidden = false;
+      if (badgeContent) badgeContent.hidden = true;
+      return;
+    }
+    const trackedUrl = buildTrackedUrl(slug, publicTypeField?.value || 'story');
+    const badgeHtml = buildBadgeHtml(trackedUrl);
+    if (htmlField) htmlField.value = badgeHtml;
+    if (urlField) urlField.value = trackedUrl;
+    if (preview) preview.innerHTML = badgeHtml;
+    if (emptyMessage) emptyMessage.hidden = true;
+    if (badgeContent) badgeContent.hidden = false;
+  };
+  [slugField, titleField, publicTypeField].forEach((field) => {
+    if (!field) return;
+    field.addEventListener('input', updateBadge);
+    field.addEventListener('change', updateBadge);
+  });
+  articleEditor.querySelectorAll('[data-copy-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const target = button.dataset.copyTarget === 'badge-url' ? urlField : htmlField;
+      if (!target) return;
+      const originalText = button.textContent;
+      try {
+        await navigator.clipboard.writeText(target.value);
+      } catch (_) {
+        target.focus(); target.select(); document.execCommand('copy');
+      }
+      button.textContent = 'Copied!';
+      setTimeout(() => { button.textContent = originalText; }, 2000);
+    });
+  });
+  updateBadge();
+}
