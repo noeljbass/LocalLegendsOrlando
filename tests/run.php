@@ -22,6 +22,11 @@ expect_same(SITE_URL . '/uploads/local-legend.webp', media_url('local-legend.web
 expect_same('zeigers-auto-detailing', slugify("Zeiger's Auto Detailing"), 'possessive article slugs remove apostrophes');
 expect_same('zeigersautodetailing', compact_slug('zeiger-s-auto-detailing'), 'compact slug ignores separators');
 expect_same('story/east-end-market-community-through-food/', article_public_path(demo_articles()[0]), 'demo stories use story public paths');
+expect_same('', article_public_tracked_badge_url(['slug' => '', 'public_type' => 'story']), 'blank badge slug does not generate tracked URL');
+expect_same(SITE_URL . '/story/zeigers-auto-detailing/?utm_source=featured_business_website&utm_medium=referral&utm_campaign=featured_on_badge&utm_content=zeigers-auto-detailing', article_public_tracked_badge_url(['slug' => "Zeiger's Auto Detailing", 'public_type' => 'story']), 'story badge tracked URL uses sanitized slug and UTM parameters');
+expect_same(SITE_URL . '/article/orlando-marketing-guide/?utm_source=featured_business_website&utm_medium=referral&utm_campaign=featured_on_badge&utm_content=orlando-marketing-guide', article_public_tracked_badge_url(['slug' => 'orlando-marketing-guide', 'public_type' => 'article']), 'article badge tracked URL uses article route');
+$badgeHtml = featured_badge_embed_html(['slug' => 'zeigers-auto-detailing', 'public_type' => 'story']);
+expect_same(true, str_contains($badgeHtml, 'target="_blank"') && str_contains($badgeHtml, 'rel="noopener noreferrer"') && str_contains($badgeHtml, 'aria-label="Read our feature on Local Legends Orlando"') && str_contains($badgeHtml, featured_badge_logo_url()), 'badge HTML includes logo, accessibility attributes, and new-tab behavior');
 expect_same(3, count(public_stories(3)), 'public story helper filters demo stories');
 expect_same(0, count(public_editorial_articles(3)), 'public article helper excludes demo stories');
 expect_same('https://www.google.com/maps/search/?api=1&query=123%20Main%20St%2C%20Orlando%2C%20FL', google_maps_address_url(' 123 Main St, Orlando, FL '), 'Google Maps address URLs are generated');

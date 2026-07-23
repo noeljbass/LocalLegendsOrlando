@@ -39,6 +39,42 @@ function article_public_path(array $article): string {
     return $type . '/' . ($article['slug'] ?? '') . '/';
 }
 function article_public_url(array $article): string { return url(article_public_path($article)); }
+function featured_badge_logo_url(): string {
+    // Upload the final single-color, slightly transparent badge logo file here.
+    return url('assets/images/featured-on-local-legends-orlando.png');
+}
+
+function article_badge_slug(string $slug): string {
+    $slug = str_replace(["'", "’", "‘", "`"], '', $slug);
+    return strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $slug), '-'));
+}
+
+function article_public_tracked_badge_url(array $article): string {
+    $slug = article_badge_slug((string) ($article['slug'] ?? ''));
+    if ($slug === '') return '';
+    $publicUrl = article_public_url(['slug' => $slug, 'public_type' => $article['public_type'] ?? 'story']);
+    $separator = str_contains($publicUrl, '?') ? '&' : '?';
+    return $publicUrl . $separator . http_build_query([
+        'utm_source' => 'featured_business_website',
+        'utm_medium' => 'referral',
+        'utm_campaign' => 'featured_on_badge',
+        'utm_content' => $slug,
+    ], '', '&', PHP_QUERY_RFC3986);
+}
+
+function featured_badge_embed_html(array $article): string {
+    $trackedUrl = article_public_tracked_badge_url($article);
+    if ($trackedUrl === '') return '';
+    return '<div style="text-align:center;">' . "\n"
+        . '    <div style="margin-bottom:8px; font-size:14px; line-height:1.4;">' . "\n"
+        . '        Featured on' . "\n"
+        . '    </div>' . "\n\n"
+        . '    <a href="' . e($trackedUrl) . '" target="_blank" rel="noopener noreferrer" aria-label="Read our feature on Local Legends Orlando">' . "\n"
+        . '        <img src="' . e(featured_badge_logo_url()) . '" alt="Featured on Local Legends Orlando" style="display:block; width:200px; max-width:100%; height:auto; margin:0 auto; border:0;">' . "\n"
+        . '    </a>' . "\n"
+        . '</div>';
+}
+
 function media_url(?string $fileName, string $fallback = 'assets/images/market.svg'): string {
     if (!$fileName) return url($fallback);
     return url(str_starts_with($fileName, 'assets/') ? $fileName : 'uploads/' . $fileName);
